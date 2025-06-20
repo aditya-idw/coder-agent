@@ -4,14 +4,16 @@ services:
     container_name: ai_coder_postgres
     environment:
       POSTGRES_DB: ai_coder_dev
-      POSTGRES_USER: ai_coder
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: dev_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ai_coder -d ai_coder_dev"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_coder_dev"]
       interval: 5s
       timeout: 5s
       retries: 5

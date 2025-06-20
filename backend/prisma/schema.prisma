@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  projects Project[]
+  
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  gitRepoUrl  String?  @map("git_repo_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  prds            PRD[]
+  codeGenerations CodeGeneration[]
+  gitCommits      GitCommit[]
+
+  @@map("projects")
+}
+
+model PRD {
+  id        String   @id @default(cuid())
+  version   String   @default("1.0.0")
+  content   String
+  changelog String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("prds")
+}
+
+model CodeGeneration {
+  id       String @id @default(cuid())
+  prompt   String
+  code     String
+  language String
+  filePath String? @map("file_path")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("code_generations")
+}
+
+model GitCommit {
+  id         String   @id @default(cuid())
+  commitHash String   @map("commit_hash")
+  message    String
+  signed     Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("git_commits")
+}
